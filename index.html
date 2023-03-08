@@ -1,0 +1,190 @@
+<html>
+  <head>
+    <script src="./d3.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="content" id="container">
+      <h1 id="title" class="title">United States Educational Attainment</h1>
+      <p id="description">
+        Percentage of adults age 25 and older with a bachelor's degree or higher
+        (2010-2014)
+      </p>
+
+      <script>
+        const getColor = (bachelorsOrHigher) => {
+          if (12 > bachelorsOrHigher /*&& bachelorsOrHigher >= 3*/)
+            return " var(--color-3To12)";
+          if (21 > bachelorsOrHigher && bachelorsOrHigher >= 12)
+            return " var(--color-12To21)";
+          if (30 > bachelorsOrHigher && bachelorsOrHigher >= 21)
+            return " var(--color-21To30)";
+          if (39 > bachelorsOrHigher && bachelorsOrHigher >= 30)
+            return " var(--color-30To39)";
+          if (48 > bachelorsOrHigher && bachelorsOrHigher >= 39)
+            return " var(--color-39To48)";
+          if (57 > bachelorsOrHigher && bachelorsOrHigher >= 48)
+            return " var(--color-48To57)";
+          if (66 > bachelorsOrHigher && bachelorsOrHigher >= 57)
+            return " var(--color-57To66)";
+
+          return "#fff";
+        };
+        function onMouseOver() {
+          const element = event.target;
+          const className = element.getAttribute("class");
+          if (className == "county") {
+            const data = JSON.parse(element.getAttribute("data"));
+            console.log(data);
+            const { county, state } = data;
+            const education = element.getAttribute("data-education");
+
+            tooltip.setAttribute("data-education", education);
+            tooltip.innerHTML = `<p>${
+              county + ", " + state
+            }: ${education}%</p>`;
+
+            tooltip.style.left = event.clientX + 20;
+            tooltip.style.top = event.clientY;
+
+            tooltip.style.opacity = "0.9";
+          } else {
+            tooltip.style.opacity = "0";
+          }
+        }
+
+        const inervalValues = [3, 12, 21, 30, 39, 48, 57, 66];
+        const legendLen = inervalValues.length;
+        const xMin = -6;
+        const xMax = 75;
+
+        const legendRectWidth = 30;
+        const legendWidth = legendRectWidth * (legendLen + 1);
+        const legendHeight = 50;
+
+        const xLegendScale = d3
+          .scaleLinear()
+          .domain([xMin, xMax])
+          .range([0, legendWidth]);
+
+        const legendSvg = d3
+          .select("div")
+          .append("div")
+          .attr("id", "legend")
+          .append("svg")
+          .attr("width", legendWidth)
+          .attr("height", legendHeight)
+          .attr("class", "legendSvg");
+
+        const xLegendAxis = d3
+          .axisBottom(xLegendScale)
+          .tickValues(inervalValues)
+          .tickSize(10, 0)
+          .tickFormat((d) => d + "%");
+
+        legendSvg
+          .selectAll("rect")
+          .data(inervalValues.slice(0, inervalValues.length - 1))
+          .enter()
+          .append("rect")
+          .attr("x", (d, i) => xLegendScale(d))
+          .attr("y", 20)
+          .attr("width", legendRectWidth)
+          .attr("height", 10)
+          .attr("class", "legendRect")
+          .attr("fill", (d) => getColor(d));
+
+        legendSvg
+          .append("g")
+          .attr("id", "x-Laxis")
+          .attr("transform", "translate(0," + legendRectWidth + ")")
+          .call(xLegendAxis);
+
+        const w = 1048;
+        const h = 600;
+
+        const svg = d3
+          .select("div")
+          .append("svg")
+          .attr("width", w)
+          .attr("height", h)
+          .attr("class", "svg")
+          .attr("id", "svg")
+          .attr("onmouseover", "onMouseOver()");
+
+        d3.select("div")
+          .append("div")
+          .attr("id", "tooltip")
+          .style("opacity", "0");
+
+        let path = d3.geoPath();
+        (async () => {
+          const usEducationUrl =
+            "https://cdn.freecodecamp.org/testable-projects-fcc/data/choropleth_map/for_user_education.json";
+          const usCountyUrl =
+            "https://cdn.freecodecamp.org/testable-projects-fcc/data/choropleth_map/counties.json";
+          const responce = await Promise.all([
+            fetch(usCountyUrl),
+            fetch(usEducationUrl),
+          ]);
+          if (responce[0].ok && responce[1].ok) {
+            let countiesData = await responce[0].json();
+            let educationData = await responce[1].json();
+
+            svg
+              .append("g")
+              .selectAll("path")
+              .data(
+                topojson.feature(countiesData, countiesData.objects.counties)
+                  .features
+              )
+              .enter()
+              .append("path")
+              .attr("class", "county")
+              .attr("d", path)
+              .attr("data-fips", (d) => d.id)
+              .attr(
+                "data-education",
+                (d) =>
+                  educationData.filter((i) => i.fips === d.id)[0]
+                    .bachelorsOrHigher
+              )
+              .attr("fill", (d) =>
+                getColor(
+                  Number(
+                    educationData.filter((i) => i.fips === d.id)[0]
+                      .bachelorsOrHigher
+                  )
+                )
+              )
+              .attr("data", (d) => {
+                const data = educationData.filter((i) => i.fips === d.id)[0];
+
+                return JSON.stringify({
+                  county: data.area_name,
+                  state: data.state,
+                });
+              });
+
+            svg
+              .append("g")
+              .selectAll("path")
+              .data(
+                topojson.feature(countiesData, countiesData.objects.states)
+                  .features
+              )
+              .enter()
+              .append("path")
+              .attr("class", "state")
+              .attr("d", path)
+              .attr("data-fips", function (d) {
+                return d.id;
+              });
+          }
+        })();
+      </script>
+      <script src="https://cdn.freecodecamp.org/testable-projects-fcc/v1/bundle.js"></script>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,96 @@
+:root {
+  --color-3To12: #96cefa;
+  --color-12To21: #86cefa;
+  --color-21To30: #73b9ee;
+  --color-30To39: #5494da;
+  --color-39To48: #3373c4;
+  --color-48To57: #1750ac;
+  --color-57To66: #003396;
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-weight: 600;
+  padding-bottom: 50px;
+}
+
+.svg {
+  background-color: white;
+  position: relative;
+}
+.svg:hover #title {
+  border: 1px black solid;
+}
+.title {
+  padding: 10px 0;
+  text-align: center;
+}
+#description {
+  text-align: center;
+  font-size: 22px;
+}
+
+.content {
+  padding: 20px;
+  box-shadow: 1px 1px 10px black;
+}
+#tooltip {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 5px;
+  background-color: rgb(143, 160, 197);
+  text-align: center;
+  transition: opacity 200ms;
+  position: absolute;
+  box-shadow: 1px 1px 10px black;
+  font-size: 14px;
+  font-weight: 600;
+}
+#tooltip p {
+  padding-bottom: 3px;
+}
+#legend {
+  display: flex;
+  flex-direction: column;
+  padding-left: 50%;
+  padding-top: 20px;
+  font-size: 14px;
+  font-weight: 400;
+  position: absolute;
+  top: 16%;
+  left: 5%;
+  z-index: 99;
+}
+#legend > div {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.county {
+  /*fill: cyan;*/
+}
+.county:hover {
+  stroke: black;
+}
+.state {
+  fill: none;
+  stroke-width: 1px;
+  stroke: white;
+  opacity: 0.2;
+}
+.legendRect {
+  stroke-width: 1px;
+  stroke: black;
+}
