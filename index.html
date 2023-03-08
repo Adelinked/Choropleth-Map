@@ -36,7 +36,6 @@
           const className = element.getAttribute("class");
           if (className == "county") {
             const data = JSON.parse(element.getAttribute("data"));
-            console.log(data);
             const { county, state } = data;
             const education = element.getAttribute("data-education");
 
